@@ -1,13 +1,20 @@
-import React from "react";
-import Header from "./Header";
-import PlantPage from "./PlantPage";
+import { useState, useEffect } from "react";
+import PlantList from "./PlantList";
 
 function App() {
+  const [plants, setPlants] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:6001/plants")
+      .then((response) => response.json())
+      .then((data) => setPlants(data));
+  }, []);
+
   return (
-    <div className="app">
-      <Header />
-      <PlantPage />
-    </div>
+    <main>
+      <h1>Plantsy 🌱</h1>
+      <PlantList plants={plants} />
+    </main>
   );
 }
 

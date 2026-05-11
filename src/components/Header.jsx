@@ -1,14 +1,14 @@
-import React from "react";
-
-function Header() {
+function Header({ search, onSearchChange }) {
   return (
     <header>
-      <h1>
-        Plantsy
-        <span className="logo" role="img">
-          🌱
-        </span>
-      </h1>
+      <h1>🌿 Plantshop</h1>
+
+      <input
+        type="text"
+        placeholder="Search plants..."
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
+      />
     </header>
   );
 }

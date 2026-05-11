@@ -1,14 +1,12 @@
-import React from "react";
 import NewPlantForm from "./NewPlantForm";
 import PlantList from "./PlantList";
-import Search from "./Search";
 
-function PlantPage() {
+function PlantPage({ plants, onAddPlant, onSoldOut }) {
   return (
     <main>
-      <NewPlantForm />
-      <Search />
-      <PlantList />
+      <NewPlantForm onAddPlant={onAddPlant} />
+
+      <PlantList plants={plants} onSoldOut={onSoldOut} />
     </main>
   );
 }
