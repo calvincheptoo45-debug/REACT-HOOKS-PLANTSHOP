@@ -1,9 +1,4 @@
 import React, { useEffect, useState } from "react";
-import plantData from "../data/plants";
-
-// If your project already has separate components such as PlantList,
-// Search, and NewPlantForm, you can keep them. This single-file version
-// includes everything needed to satisfy the tests.
 
 function App() {
   const [plants, setPlants] = useState([]);
@@ -14,9 +9,12 @@ function App() {
   const [image, setImage] = useState("");
   const [price, setPrice] = useState("");
 
-  // Load plants into state (not hardcoded in JSX)
+  // Fetch plants from the server
   useEffect(() => {
-    setPlants(plantData);
+    fetch("http://localhost:6001/plants")
+      .then((response) => response.json())
+      .then((data) => setPlants(data))
+      .catch((error) => console.error("Error fetching plants:", error));
   }, []);
 
   // Add a new plant
@@ -24,32 +22,41 @@ function App() {
     e.preventDefault();
 
     const newPlant = {
-      id: Date.now(),
       name,
       image,
-      price: parseFloat(price),
+      price: Number(price),
       inStock: true,
     };
 
-    setPlants((prevPlants) => [...prevPlants, newPlant]);
+    fetch("http://localhost:6001/plants", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newPlant),
+    })
+      .then((response) => response.json())
+      .then((createdPlant) => {
+        setPlants([...plants, createdPlant]);
 
-    // Clear form
-    setName("");
-    setImage("");
-    setPrice("");
+        // Clear form
+        setName("");
+        setImage("");
+        setPrice("");
+      });
   }
 
-  // Toggle stock status
+  // Toggle stock status locally
   function handleToggleStock(id) {
-    setPlants((prevPlants) =>
-      prevPlants.map((plant) =>
+    setPlants(
+      plants.map((plant) =>
         plant.id === id ? { ...plant, inStock: !plant.inStock } : plant,
       ),
     );
   }
 
   // Filter plants by search term
-  const filteredPlants = plants.filter((plant) =>
+  const displayedPlants = plants.filter((plant) =>
     plant.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
@@ -57,7 +64,7 @@ function App() {
     <main>
       <h1>Plantsy 🌱</h1>
 
-      {/* Search Bar */}
+      {/* Search input */}
       <input
         type="text"
         placeholder="Type a name to search..."
@@ -65,7 +72,7 @@ function App() {
         onChange={(e) => setSearchTerm(e.target.value)}
       />
 
-      {/* New Plant Form */}
+      {/* New plant form */}
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -92,9 +99,9 @@ function App() {
         <button type="submit">Add Plant</button>
       </form>
 
-      {/* Plant List */}
+      {/* Plant list */}
       <ul>
-        {filteredPlants.map((plant) => (
+        {displayedPlants.map((plant) => (
           <li key={plant.id} data-testid="plant-item">
             {plant.name} - ${plant.price}{" "}
             <button onClick={() => handleToggleStock(plant.id)}>
