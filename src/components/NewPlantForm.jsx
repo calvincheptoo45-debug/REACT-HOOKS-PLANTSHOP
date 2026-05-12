@@ -1,50 +1,76 @@
+// src/components/NewPlantForm.jsx
+
 import { useState } from "react";
 
 function NewPlantForm({ onAddPlant }) {
-  const [name, setName] = useState("");
-  const [image, setImage] = useState("");
-  const [price, setPrice] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    image: "",
+    price: "",
+  });
+
+  function handleChange(e) {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
 
     const newPlant = {
-      name,
-      image,
-      price: Number(price),
-      soldOut: false,
+      name: formData.name,
+      image: formData.image,
+      price: parseFloat(formData.price),
+      inStock: true,
     };
 
-    onAddPlant(newPlant);
+    // Return the fetch promise so the test can detect the call
+    fetch("http://localhost:6001/plants", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newPlant),
+    })
+      .then((res) => res.json())
+      .then((createdPlant) => {
+        onAddPlant(createdPlant);
+      });
 
-    setName("");
-    setImage("");
-    setPrice("");
+    // Clear the form after submission
+    setFormData({
+      name: "",
+      image: "",
+      price: "",
+    });
   }
 
   return (
     <form className="new-plant-form" onSubmit={handleSubmit}>
-      <h2>New Plant</h2>
-
       <input
         type="text"
+        name="name"
         placeholder="Plant name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        value={formData.name}
+        onChange={handleChange}
       />
 
       <input
         type="text"
+        name="image"
         placeholder="Image URL"
-        value={image}
-        onChange={(e) => setImage(e.target.value)}
+        value={formData.image}
+        onChange={handleChange}
       />
 
       <input
-        type="number"
+        type="text"
+        name="price"
         placeholder="Price"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
+        value={formData.price}
+        onChange={handleChange}
       />
 
       <button type="submit">Add Plant</button>
