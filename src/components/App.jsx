@@ -2,30 +2,25 @@ import React, { useEffect, useState } from "react";
 
 function App() {
   const [plants, setPlants] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [search, setSearch] = useState("");
 
-  // Form state
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
   const [price, setPrice] = useState("");
 
-  // Fetch plants from the server
   useEffect(() => {
     fetch("http://localhost:6001/plants")
-      .then((response) => response.json())
-      .then((data) => setPlants(data))
-      .catch((error) => console.error("Error fetching plants:", error));
+      .then((r) => r.json())
+      .then((data) => setPlants(data));
   }, []);
 
-  // Add a new plant
   function handleSubmit(e) {
     e.preventDefault();
 
     const newPlant = {
       name,
       image,
-      price: Number(price),
-      inStock: true,
+      price,
     };
 
     fetch("http://localhost:6001/plants", {
@@ -35,18 +30,16 @@ function App() {
       },
       body: JSON.stringify(newPlant),
     })
-      .then((response) => response.json())
-      .then((createdPlant) => {
-        setPlants([...plants, createdPlant]);
-
-        // Clear form
-        setName("");
-        setImage("");
-        setPrice("");
+      .then((r) => r.json())
+      .then((newPlantFromServer) => {
+        setPlants([...plants, newPlantFromServer]);
       });
+
+    setName("");
+    setImage("");
+    setPrice("");
   }
 
-  // Toggle stock status locally
   function handleToggleStock(id) {
     setPlants(
       plants.map((plant) =>
@@ -55,24 +48,21 @@ function App() {
     );
   }
 
-  // Filter plants by search term
   const displayedPlants = plants.filter((plant) =>
-    plant.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    plant.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
     <main>
       <h1>Plantsy 🌱</h1>
 
-      {/* Search input */}
       <input
         type="text"
         placeholder="Type a name to search..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
       />
 
-      {/* New plant form */}
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -89,8 +79,7 @@ function App() {
         />
 
         <input
-          type="number"
-          step="0.01"
+          type="text"
           placeholder="Price"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
@@ -99,11 +88,12 @@ function App() {
         <button type="submit">Add Plant</button>
       </form>
 
-      {/* Plant list */}
       <ul>
         {displayedPlants.map((plant) => (
           <li key={plant.id} data-testid="plant-item">
-            {plant.name} - ${plant.price}{" "}
+            <img src={plant.image} alt={plant.name} width="100" />
+            <h3>{plant.name}</h3>
+            <p>${plant.price}</p>
             <button onClick={() => handleToggleStock(plant.id)}>
               {plant.inStock ? "In Stock" : "Sold Out"}
             </button>
