@@ -10,21 +10,22 @@ function App() {
   const [image, setImage] = useState("");
   const [price, setPrice] = useState("");
 
-  // Fetch plants from API
+  // Fetch plants from the server
   useEffect(() => {
     fetch("http://localhost:6001/plants")
-      .then((res) => res.json())
-      .then((data) => setPlants(data));
+      .then((response) => response.json())
+      .then((data) => setPlants(data))
+      .catch((error) => console.error("Error fetching plants:", error));
   }, []);
 
-  // Add new plant
+  // Add a new plant
   function handleSubmit(e) {
     e.preventDefault();
 
     const newPlant = {
       name: name,
       image: image,
-      price: price, // keep as string because tests expect this
+      price: price, // keep as string for tests
     };
 
     fetch("http://localhost:6001/plants", {
@@ -34,7 +35,7 @@ function App() {
       },
       body: JSON.stringify(newPlant),
     })
-      .then((res) => res.json())
+      .then((response) => response.json())
       .then((createdPlant) => {
         setPlants([...plants, createdPlant]);
       });
@@ -45,7 +46,7 @@ function App() {
     setPrice("");
   }
 
-  // Toggle stock status locally
+  // Toggle stock status
   function handleToggleStock(id) {
     setPlants(
       plants.map((plant) =>
@@ -63,7 +64,7 @@ function App() {
     <main>
       <h1>Plantsy 🌱</h1>
 
-      {/* Search bar */}
+      {/* Search input - exact placeholder required by tests */}
       <input
         type="text"
         placeholder="Type a name to search..."
@@ -71,7 +72,7 @@ function App() {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {/* Plant form */}
+      {/* Form */}
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -101,11 +102,11 @@ function App() {
       <ul className="cards">
         {plantsToDisplay.map((plant) => (
           <li key={plant.id} className="card" data-testid="plant-item">
+            {/* Exact structure expected by tests */}
             <img src={plant.image} alt={plant.name} />
-            <h2>{plant.name}</h2>
-            <p>{plant.price}</p>
+            <h4>{plant.name}</h4>
+            <p>Price: {plant.price}</p>
 
-            {/* Important: show "In Stock" when true */}
             <button onClick={() => handleToggleStock(plant.id)}>
               {plant.inStock ? "In Stock" : "Sold Out"}
             </button>
