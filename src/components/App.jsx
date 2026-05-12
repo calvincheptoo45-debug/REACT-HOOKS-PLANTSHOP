@@ -15,10 +15,11 @@ function App() {
   useEffect(() => {
     fetch("http://localhost:6001/plants")
       .then((response) => response.json())
-      .then((data) => setPlants(data));
+      .then((data) => setPlants(data))
+      .catch((error) => console.error("Error fetching plants:", error));
   }, []);
 
-  // Add new plant
+  // Add a new plant
   function handleSubmit(e) {
     e.preventDefault();
 
@@ -37,16 +38,17 @@ function App() {
     })
       .then((response) => response.json())
       .then((createdPlant) => {
-        // Ensure new plants always start in stock
         const plantToAdd = {
           ...createdPlant,
-          inStock:
-            createdPlant.inStock !== undefined ? createdPlant.inStock : true,
+          isInStock:
+            createdPlant.isInStock !== undefined
+              ? createdPlant.isInStock
+              : true,
         };
 
-        setPlants([...plants, plantToAdd]);
+        setPlants((currentPlants) => [...currentPlants, plantToAdd]);
 
-        // Clear form
+        // Clear form fields
         setName("");
         setImage("");
         setPrice("");
@@ -55,14 +57,14 @@ function App() {
 
   // Toggle stock status
   function handleToggleStock(id) {
-    setPlants(
-      plants.map((plant) =>
-        plant.id === id ? { ...plant, inStock: !plant.inStock } : plant,
+    setPlants((currentPlants) =>
+      currentPlants.map((plant) =>
+        plant.id === id ? { ...plant, isInStock: !plant.isInStock } : plant,
       ),
     );
   }
 
-  // Filter plants by search term
+  // Filter plants based on search
   const displayedPlants = plants.filter((plant) =>
     plant.name.toLowerCase().includes(search.toLowerCase()),
   );
@@ -71,15 +73,15 @@ function App() {
     <main>
       <h1>Plantsy 🌱</h1>
 
-      {/* Search bar */}
+      {/* Search input */}
       <input
         type="text"
-        placeholder="Search plants..."
+        placeholder="Type a name to search..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {/* Add plant form */}
+      {/* New plant form */}
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -109,14 +111,14 @@ function App() {
       <ul className="cards">
         {displayedPlants.map((plant) => (
           <li key={plant.id} data-testid="plant-item" className="card">
-            <img src={plant.image} alt={plant.name} width="100" />
+            <img src={plant.image} alt={plant.name} />
 
-            <h3>{plant.name}</h3>
+            <h2>{plant.name}</h2>
 
             <p>{plant.price}</p>
 
             <button onClick={() => handleToggleStock(plant.id)}>
-              {plant.inStock ? "In Stock" : "Sold Out"}
+              {plant.isInStock ? "In Stock" : "Sold Out"}
             </button>
           </li>
         ))}
