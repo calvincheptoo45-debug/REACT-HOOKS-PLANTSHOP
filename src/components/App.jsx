@@ -6,27 +6,25 @@ function App() {
   const [plants, setPlants] = useState([]);
   const [search, setSearch] = useState("");
 
-  // Form state
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
   const [price, setPrice] = useState("");
 
-  // Fetch plants from the server
+  // Fetch plants from API
   useEffect(() => {
     fetch("http://localhost:6001/plants")
-      .then((response) => response.json())
-      .then((data) => setPlants(data))
-      .catch((error) => console.error("Error fetching plants:", error));
+      .then((res) => res.json())
+      .then((data) => setPlants(data));
   }, []);
 
-  // Add a new plant
+  // Add new plant
   function handleSubmit(e) {
     e.preventDefault();
 
     const newPlant = {
-      name,
-      image,
-      price, // keep as string to match tests
+      name: name,
+      image: image,
+      price: price, // keep as string because tests expect this
     };
 
     fetch("http://localhost:6001/plants", {
@@ -36,36 +34,28 @@ function App() {
       },
       body: JSON.stringify(newPlant),
     })
-      .then((response) => response.json())
+      .then((res) => res.json())
       .then((createdPlant) => {
-        const plantToAdd = {
-          ...createdPlant,
-          isInStock:
-            createdPlant.isInStock !== undefined
-              ? createdPlant.isInStock
-              : true,
-        };
-
-        setPlants((currentPlants) => [...currentPlants, plantToAdd]);
-
-        // Clear form fields
-        setName("");
-        setImage("");
-        setPrice("");
+        setPlants([...plants, createdPlant]);
       });
+
+    // Clear form
+    setName("");
+    setImage("");
+    setPrice("");
   }
 
-  // Toggle stock status
+  // Toggle stock status locally
   function handleToggleStock(id) {
-    setPlants((currentPlants) =>
-      currentPlants.map((plant) =>
-        plant.id === id ? { ...plant, isInStock: !plant.isInStock } : plant,
+    setPlants(
+      plants.map((plant) =>
+        plant.id === id ? { ...plant, inStock: !plant.inStock } : plant,
       ),
     );
   }
 
-  // Filter plants based on search
-  const displayedPlants = plants.filter((plant) =>
+  // Filter plants by search term
+  const plantsToDisplay = plants.filter((plant) =>
     plant.name.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -73,7 +63,7 @@ function App() {
     <main>
       <h1>Plantsy 🌱</h1>
 
-      {/* Search input */}
+      {/* Search bar */}
       <input
         type="text"
         placeholder="Type a name to search..."
@@ -81,7 +71,7 @@ function App() {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {/* New plant form */}
+      {/* Plant form */}
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -109,16 +99,15 @@ function App() {
 
       {/* Plant list */}
       <ul className="cards">
-        {displayedPlants.map((plant) => (
-          <li key={plant.id} data-testid="plant-item" className="card">
+        {plantsToDisplay.map((plant) => (
+          <li key={plant.id} className="card" data-testid="plant-item">
             <img src={plant.image} alt={plant.name} />
-
             <h2>{plant.name}</h2>
-
             <p>{plant.price}</p>
 
+            {/* Important: show "In Stock" when true */}
             <button onClick={() => handleToggleStock(plant.id)}>
-              {plant.isInStock ? "In Stock" : "Sold Out"}
+              {plant.inStock ? "In Stock" : "Sold Out"}
             </button>
           </li>
         ))}
